@@ -213,7 +213,8 @@ function App(props) {
             */}
 
             <Contract
-              name="Handcuffs"
+              name="HandcuffsFactory"
+              // name="Handcuffs"
               signer={userProvider.getSigner()}
               provider={localProvider}
               address={address}
@@ -221,15 +222,15 @@ function App(props) {
             />
 
 
-            { /* uncomment for a second contract:
-            <Contract
-              name="SecondContract"
+            {
+            /*<Contract
+              name="HandcuffsFactory"
               signer={userProvider.getSigner()}
               provider={localProvider}
               address={address}
               blockExplorer={blockExplorer}
-            />
-            */ }
+            />*/
+             }
 
             { /* Uncomment to display and interact with an external contract (DAI on mainnet):
             <Contract

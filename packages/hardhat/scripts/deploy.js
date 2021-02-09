@@ -10,8 +10,10 @@ const main = async () => {
   console.log("\n\n 📡 Deploying...\n");
 
 
-  const handcuffs = await deploy("Handcuffs", ["0x2813160A00fd287c6421496D97cE2095bB49FF02", "0x2813160A00fd287c6421496D97cE2095bB49FF02"]) // <-- add in constructor args like line 19 vvvv
-  // const handcuffs = await deploy("Handcuffs")
+  // const handcuffs = await deploy("Handcuffs") // <-- add in constructor args like line 19 vvvv
+  // const handcuffsFactory = await deploy("HandcuffsFactory",
+  //       ["0x3e308bF76C78c05FAC272b4f1ad8C76eAf83A8Bd"])
+  const handcuffs = await deploy("Handcuffs", ["0x3e308bF76C78c05FAC272b4f1ad8C76eAf83A8Bd","0x3e308bF76C78c05FAC272b4f1ad8C76eAf83A8Bd"])
 
   //const secondContract = await deploy("SecondContract")
 
