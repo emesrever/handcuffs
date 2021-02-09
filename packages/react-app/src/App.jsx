@@ -213,7 +213,7 @@ function App(props) {
             */}
 
             <Contract
-              name="YourContract"
+              name="Handcuffs"
               signer={userProvider.getSigner()}
               provider={localProvider}
               address={address}
