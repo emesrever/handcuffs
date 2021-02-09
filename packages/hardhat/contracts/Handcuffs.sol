@@ -17,9 +17,15 @@ contract Handcuffs is ConditionalEscrow{
   }
 
   function withdrawalAllowed(address _payee) public view override returns(bool){
-   // return(_payee == beneficiary);
-   console.log("WithdrawalAllowed called");
-   return(false);
+
+   console.log("WithdrawalAllowed called, result: ", _payee == beneficiary);
+   // return(false);
+   return(_payee == beneficiary);
   }
+
+  /* function withdraw(address payable payee) public override {
+        require(withdrawalAllowed(payee), "ConditionalEscrow: payee is not allowed to withdraw");
+        super.withdraw(payee);
+    } */
 
 }
