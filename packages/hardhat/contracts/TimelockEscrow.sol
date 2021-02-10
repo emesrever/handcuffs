@@ -7,6 +7,9 @@ import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract TimelockEscrow is Ownable {
+    using Address for address payable;
+
+
     struct Vault {
         uint256 amount;
         // release time
@@ -14,6 +17,7 @@ contract TimelockEscrow is Ownable {
 
     mapping(address => Vault[]) private _vaults;
 
+    // returns vault amount
     function getVaultAmount(address owner, uint256 vaultIndex)
         public
         view

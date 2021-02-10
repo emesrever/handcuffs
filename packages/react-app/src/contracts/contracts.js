@@ -1,1 +1,1 @@
-module.exports = ["Handcuffs","HandcuffsPullPayment","Mortal","Owned"];
+module.exports = ["Handcuffs"];
