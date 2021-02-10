@@ -5,14 +5,16 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/payment/escrow/ConditionalEscrow.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 
 contract TimelockEscrow is Ownable {
     using Address for address payable;
+    using SafeMath for uint256;
 
 
     struct Vault {
         uint256 amount;
-        // release time
+        uint256 unlocked_timestamp;
     }
 
     mapping(address => Vault[]) private _vaults;
@@ -21,13 +23,17 @@ contract TimelockEscrow is Ownable {
     function getVaultAmount(address owner, uint256 vaultIndex)
         public
         view
-        returns (uint256)
+        returns (uint256, uint256)
     {
-        return _vaults[owner][vaultIndex].amount;
+        return ( _vaults[owner][vaultIndex].amount,
+            _vaults[owner][vaultIndex].unlocked_timestamp );
     }
 
-    function deposit(address payee) public payable virtual onlyOwner {
-        _vaults[payee].push(Vault({amount: msg.value}));
+    function deposit(address payee, uint256 lock_seconds) public payable virtual onlyOwner {
+        _vaults[payee].push(Vault({
+                amount: msg.value,
+                unlocked_timestamp: block.timestamp + lock_seconds
+            }));
     }
 
     function withdraw(address payable payee, uint256 vaultIndex)

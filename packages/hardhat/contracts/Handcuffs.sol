@@ -13,8 +13,8 @@ contract Handcuffs {
         _escrow = new TimelockEscrow();
     }
 
-    function deposit() public payable {
-        _asyncTransfer(msg.sender, msg.value);
+    function deposit(uint256 lock_seconds) public payable {
+        _asyncTransfer(msg.sender, msg.value, lock_seconds);
     }
 
     function withdraw(uint256 vaultIndex) public {
@@ -23,18 +23,19 @@ contract Handcuffs {
 
     // catches if you send to the contract as if it's an address.
     receive() external payable {
-        deposit();
+        deposit(0);
+        // assume that it shouldn't be locked
     }
 
     // creates a new TimelockEscrow vault
-    function _asyncTransfer(address dest, uint256 amount) internal virtual {
-        _escrow.deposit{value: amount}(dest);
+    function _asyncTransfer(address dest, uint256 amount, uint256 lock_seconds) internal virtual {
+        _escrow.deposit{value: amount}(dest, lock_seconds);
     }
 
     function getVaultAmount(address owner, uint256 vaultIndex)
         public
         view
-        returns (uint256)
+        returns (uint256, uint256)
     {
         return _escrow.getVaultAmount(owner, vaultIndex);
     }
