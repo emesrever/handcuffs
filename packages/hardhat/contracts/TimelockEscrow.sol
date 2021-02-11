@@ -84,6 +84,10 @@ contract TimelockEscrow is Ownable {
         address guardianOne,
         address guardianTwo
     ) public payable virtual onlyOwner {
+        require(payee != guardianOne &&
+            payee != guardianTwo, "vault creator cannot be guardian")
+        require(guardianOne != guardianTwo, "Guardians must be unique")
+
         _vaults[payee].push(
             Vault({
                 amount: msg.value,

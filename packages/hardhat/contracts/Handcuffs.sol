@@ -14,12 +14,13 @@ contract Handcuffs {
     }
 
     function deposit(
+        uint256 beneficiary,
         uint256 lock_seconds,
         address guardianOne,
         address guardianTwo
     ) public payable {
         _asyncTransfer(
-            msg.sender,
+            beneficiary,
             msg.value,
             lock_seconds,
             guardianOne,
