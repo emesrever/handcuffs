@@ -19,7 +19,7 @@ contract TimelockEscrow is Ownable {
     mapping(address => Vault[]) private _vaults;
 
     // returns vault amount
-    function getVaultAmount(address owner, uint256 vaultIndex)
+    function getVaultInfo(address owner, uint256 vaultIndex)
         public
         view
         onlyOwner

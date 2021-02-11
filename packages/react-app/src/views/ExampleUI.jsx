@@ -1,14 +1,71 @@
 /* eslint-disable jsx-a11y/accessible-emoji */
 
-import React, { useState } from "react";
-import { Button, List, Divider, Input, Card, DatePicker, Slider, Switch, Progress, Spin } from "antd";
-import { SyncOutlined } from '@ant-design/icons';
 import { Address, Balance } from "../components";
-import { parseEther, formatEther } from "@ethersproject/units";
+import { Button, Card, DatePicker, Divider, Input, List, Progress, Slider, Spin, Switch } from "antd";
+import React, { useState } from "react";
+import { formatEther, parseEther } from "@ethersproject/units";
+
+import { SyncOutlined } from '@ant-design/icons';
+import { concatAST } from "graphql";
 
 export default function ExampleUI({purpose, setPurposeEvents, address, mainnetProvider, userProvider, localProvider, yourLocalBalance, price, tx, readContracts, writeContracts }) {
 
   const [newPurpose, setNewPurpose] = useState("loading...");
+  const [vaults, setVaults] = useState([]);
+  
+  const fetchVaults = async () => {
+    console.log("fetching vaults")
+    
+    const vaultCountBN = await readContracts.Handcuffs.getVaultCount(address);
+    const vaultCount = vaultCountBN.toNumber();
+
+    console.log(vaultCount);
+
+    const newVaults = [];
+
+    for (let i = 0; i < vaultCount; i++) {
+      console.log("fetching vault index " + i);
+      const newVault = await readContracts.Handcuffs.getVaultInfo(address, i);
+      console.log(newVault);
+      const end = new Date(0);
+      end.setUTCSeconds(newVault[1].toNumber());
+
+      newVaults.push({
+        amount: formatEther(newVault[0]),
+        unlocked_timestamp: end
+      })
+    }
+
+    setVaults(newVaults);
+  }
+
+  const renderVaultList = () => {
+    return vaults.length == 0 ? 
+      (<div></div>)
+    :
+      (
+        <table>
+        <tr>
+          <th style={{padding:16}}>Vault Index</th>
+          <th style={{padding:16}}>Amount</th>
+          <th style={{padding:16}}>Uncuffed Time</th>
+        </tr>
+          {
+            vaults.map((vault, i) => {
+              return(
+                <tr key={i}>
+                  <td>{i}</td>
+                  <td>{vault.amount}</td>
+                  <td>{vault.unlocked_timestamp.toLocaleString()}</td>
+                </tr>
+              )
+            }
+            )
+          }
+        </table>
+      )
+  }
+
 
   return (
     <div>
@@ -16,10 +73,20 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
         ⚙️ Here is an example UI that displays and sets the purpose in your smart contract:
       */}
       <div style={{border:"1px solid #cccccc", padding:16, width:400, margin:"auto",marginTop:64}}>
-        <h2>Example UI:</h2>
+        <h2>Handcuffs</h2>
+        <div style={{margin:8}}>
+          <Button onClick={()=>{
+            fetchVaults()
+          }}>Fetch Vaults</Button>
+        </div>
 
-        <h4>purpose: {purpose}</h4>
+        <div>
+          {renderVaultList()}
+        </div>
 
+
+        <Divider/>
+        <Divider/>
         <Divider/>
 
         <div style={{margin:8}}>
@@ -27,7 +94,7 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
           <Button onClick={()=>{
             console.log("newPurpose",newPurpose)
             /* look how you call setPurpose on your contract: */
-            tx( writeContracts.YourContract.setPurpose(newPurpose) )
+            tx( writeContracts.Handcuffs.setPurpose(newPurpose) )
           }}>Set Purpose</Button>
         </div>
 
@@ -75,7 +142,7 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
 
         Your Contract Address:
         <Address
-            value={readContracts?readContracts.YourContract.address:readContracts}
+            value={readContracts?readContracts.Handcuffs.address:readContracts}
             ensProvider={mainnetProvider}
             fontSize={16}
         />
@@ -85,7 +152,7 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
         <div style={{margin:8}}>
           <Button onClick={()=>{
             /* look how you call setPurpose on your contract: */
-            tx( writeContracts.YourContract.setPurpose("🍻 Cheers") )
+            tx( writeContracts.Handcuffs.setPurpose("🍻 Cheers") )
           }}>Set Purpose to "🍻 Cheers"</Button>
         </div>
 
@@ -96,7 +163,7 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
               here we are sending value straight to the contract's address:
             */
             tx({
-              to: writeContracts.YourContract.address,
+              to: writeContracts.Handcuffs.address,
               value: parseEther("0.001")
             });
             /* this should throw an error about "no fallback nor receive function" until you add it */
@@ -106,7 +173,7 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
         <div style={{margin:8}}>
           <Button onClick={()=>{
             /* look how we call setPurpose AND send some value along */
-            tx( writeContracts.YourContract.setPurpose("💵 Paying for this one!",{
+            tx( writeContracts.Handcuffs.setPurpose("💵 Paying for this one!",{
               value: parseEther("0.001")
             }))
             /* this will fail until you make the setPurpose function payable */
@@ -118,9 +185,9 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
           <Button onClick={()=>{
             /* you can also just craft a transaction and send it to the tx() transactor */
             tx({
-              to: writeContracts.YourContract.address,
+              to: writeContracts.Handcuffs.address,
               value: parseEther("0.001"),
-              data: writeContracts.YourContract.interface.encodeFunctionData("setPurpose(string)",["🤓 Whoa so 1337!"])
+              data: writeContracts.Handcuffs.interface.encodeFunctionData("setPurpose(string)",["🤓 Whoa so 1337!"])
             });
             /* this should throw an error about "no fallback nor receive function" until you add it */
           }}>Another Example</Button>
@@ -130,7 +197,7 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
 
       {/*
         📑 Maybe display a list of events?
-          (uncomment the event and emit line in YourContract.sol! )
+          (uncomment the event and emit line in Handcuffs.sol! )
       */}
       <div style={{ width:600, margin: "auto", marginTop:32, paddingBottom:32 }}>
         <h2>Events:</h2>

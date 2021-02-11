@@ -40,12 +40,12 @@ contract Handcuffs {
         _escrow.deposit{value: amount}(dest, lock_seconds);
     }
 
-    function getVaultAmount(address owner, uint256 vaultIndex)
+    function getVaultInfo(address owner, uint256 vaultIndex)
         public
         view
         returns (uint256, uint256)
     {
-        return _escrow.getVaultAmount(owner, vaultIndex);
+        return _escrow.getVaultInfo(owner, vaultIndex);
     }
 
     function getVaultCount(address owner) public view returns (uint256) {
