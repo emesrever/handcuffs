@@ -1,17 +1,18 @@
 /* eslint-disable jsx-a11y/accessible-emoji */
 
 import { Address, Balance } from "../components";
-import { Button, Card, DatePicker, Divider, Input, List, Progress, Slider, Spin, Switch } from "antd";
+import { Button, Card, DatePicker, Divider, Input, List, Progress, Slider, Spin, Switch, TimePicker } from "antd";
 import React, { useState } from "react";
 import { formatEther, parseEther } from "@ethersproject/units";
 
 import { SyncOutlined } from '@ant-design/icons';
-import { concatAST } from "graphql";
 
 export default function ExampleUI({purpose, setPurposeEvents, address, mainnetProvider, userProvider, localProvider, yourLocalBalance, price, tx, readContracts, writeContracts }) {
 
   const [newPurpose, setNewPurpose] = useState("loading...");
   const [vaults, setVaults] = useState([]);
+  const [newVaultAmount, setNewVaultAmount] = useState();
+  const [newVaultDuration, setNewVaultDuration] = useState();
   
   const fetchVaults = async () => {
     console.log("fetching vaults")
@@ -49,6 +50,7 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
           <th style={{padding:16}}>Vault Index</th>
           <th style={{padding:16}}>Amount</th>
           <th style={{padding:16}}>Uncuffed Time</th>
+          <th style={{padding:16}}></th>
         </tr>
           {
             vaults.map((vault, i) => {
@@ -57,6 +59,13 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
                   <td>{i}</td>
                   <td>{vault.amount}</td>
                   <td>{vault.unlocked_timestamp.toLocaleString()}</td>
+                  <td>
+                    <Button onClick={()=>{
+                      console.log("withdrawing vault ",i);
+                      tx( writeContracts.Handcuffs.withdraw(i) );
+                      fetchVaults();
+                    }}>Withdraw</Button>  
+                  </td>
                 </tr>
               )
             }
@@ -66,6 +75,17 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
       )
   }
 
+  const createVault = () => {
+    console.log(newVaultAmount);
+    console.log(newVaultDuration);
+
+    const durationSeconds = newVaultDuration * 60;
+    const valueToSend = parseEther(newVaultAmount);
+
+    tx( writeContracts.Handcuffs.deposit(durationSeconds, {
+      value: valueToSend
+    }) )
+  }
 
   return (
     <div>
@@ -74,14 +94,43 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
       */}
       <div style={{border:"1px solid #cccccc", padding:16, width:400, margin:"auto",marginTop:64}}>
         <h2>Handcuffs</h2>
+        
+        Your Address:
+        <Address
+            value={address}
+            ensProvider={mainnetProvider}
+            fontSize={16}
+        />
+
+        <div>Your Balance: {yourLocalBalance?formatEther(yourLocalBalance):"..."}</div>
+
         <div style={{margin:8}}>
           <Button onClick={()=>{
             fetchVaults()
-          }}>Fetch Vaults</Button>
+          }}>{vaults.length == 0 ? "Fetch Vaults" : "Refresh Vaults"}</Button>
         </div>
 
         <div>
           {renderVaultList()}
+        </div>
+
+        <Divider/>
+
+        <div style={{margin:8}}>
+          <Input
+            placeholder="Amount (ETH)"
+            onChange={e => setNewVaultAmount(e.target.value)}
+            value={newVaultAmount}
+          />
+          <Input
+            placeholder="Duration (mins)"
+            onChange={e => setNewVaultDuration(e.target.value)}
+            value={newVaultDuration}
+          />
+          <Button onClick={()=>{
+            console.log("creating new vault")
+            createVault()
+          }}>Create Vault</Button>
         </div>
 
 
@@ -100,13 +149,6 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
 
 
         <Divider />
-
-        Your Address:
-        <Address
-            value={address}
-            ensProvider={mainnetProvider}
-            fontSize={16}
-        />
 
         <Divider />
 
