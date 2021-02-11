@@ -76,15 +76,15 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
   }
 
   const createVault = () => {
-    console.log(newVaultAmount);
-    console.log(newVaultDuration);
-
     const durationSeconds = newVaultDuration * 60;
     const valueToSend = parseEther(newVaultAmount);
 
     tx( writeContracts.Handcuffs.deposit(durationSeconds, {
       value: valueToSend
     }) )
+
+    setNewVaultAmount(null);
+    setNewVaultDuration(null);
   }
 
   return (
