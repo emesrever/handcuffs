@@ -6,10 +6,12 @@ import "@openzeppelin/contracts/payment/escrow/ConditionalEscrow.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 contract TimelockEscrow is Ownable {
     using Address for address payable;
     using SafeMath for uint256;
+    using SafeERC20 for IERC20;
 
     struct Vault {
         uint256 amount;
@@ -88,7 +90,7 @@ contract TimelockEscrow is Ownable {
         return _vaults[owner].length;
     }
 
-    function deposit(
+    function createVault(
         address payee,
         uint256 lock_seconds,
         uint256 numConfirmations,
@@ -117,6 +119,12 @@ contract TimelockEscrow is Ownable {
                 guardianThreeSigned: false
             })
         );
+    }
+
+    function deposit(address payee, uint256 vaultIndex) public payable virtual onlyOwner
+        validVault(payee, vaultIndex)
+    {
+            _vaults[payee][vaultIndex].amount += msg.value;
     }
 
     function withdraw(address payable payee, uint256 vaultIndex)

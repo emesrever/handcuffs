@@ -221,13 +221,13 @@ function App(props) {
             />
 
 
-            {/* <Contract
-              name="Mortal"
+            {<Contract
+              name="StantonCoin"
               signer={userProvider.getSigner()}
               provider={localProvider}
               address={address}
               blockExplorer={blockExplorer}
-            /> */}
+            />}
 
             { /* Uncomment to display and interact with an external contract (DAI on mainnet):
             <Contract

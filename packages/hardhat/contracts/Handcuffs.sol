@@ -15,20 +15,11 @@ contract Handcuffs {
 
     function deposit(
         address beneficiary,
-        uint256 lock_seconds,
-        uint256 numConfirmations,
-        address guardianOne,
-        address guardianTwo,
-        address guardianThree
+        uint256 vaultIndex
     ) public payable {
-        _asyncTransfer(
+        _escrow.deposit{value: msg.value}(
             beneficiary,
-            msg.value,
-            numConfirmations,
-            lock_seconds,
-            guardianOne,
-            guardianTwo,
-            guardianThree
+            vaultIndex
         );
     }
 
@@ -41,16 +32,15 @@ contract Handcuffs {
     }
 
     // creates a new TimelockEscrow vault
-    function _asyncTransfer(
+    function createVault(
         address dest,
-        uint256 amount,
         uint256 numConfirmations,
         uint256 lock_seconds,
         address guardianOne,
         address guardianTwo,
         address guardianThree
-    ) internal virtual {
-        _escrow.deposit{value: amount}(
+    ) public payable {
+        _escrow.createVault{value: msg.value}(
             dest,
             lock_seconds,
             numConfirmations,

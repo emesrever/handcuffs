@@ -14,6 +14,8 @@ const main = async () => {
 
   const handcuffs = await deploy("Handcuffs")
 
+  const stantoncoin = await deploy("StantonCoin", [4000])
+
   // const exampleToken = await deploy("ExampleToken")
   // const examplePriceOracle = await deploy("ExamplePriceOracle")
   // const smartContractWallet = await deploy("SmartContractWallet",[exampleToken.address,examplePriceOracle.address])
