@@ -14,17 +14,21 @@ contract Handcuffs {
     }
 
     function deposit(
-        uint256 beneficiary,
+        address beneficiary,
         uint256 lock_seconds,
+        uint256 numConfirmations,
         address guardianOne,
-        address guardianTwo
+        address guardianTwo,
+        address guardianThree
     ) public payable {
         _asyncTransfer(
             beneficiary,
             msg.value,
+            numConfirmations,
             lock_seconds,
             guardianOne,
-            guardianTwo
+            guardianTwo,
+            guardianThree
         );
     }
 
@@ -40,15 +44,19 @@ contract Handcuffs {
     function _asyncTransfer(
         address dest,
         uint256 amount,
+        uint256 numConfirmations,
         uint256 lock_seconds,
         address guardianOne,
-        address guardianTwo
+        address guardianTwo,
+        address guardianThree
     ) internal virtual {
         _escrow.deposit{value: amount}(
             dest,
             lock_seconds,
+            numConfirmations,
             guardianOne,
-            guardianTwo
+            guardianTwo,
+            guardianThree
         );
     }
 
@@ -58,6 +66,9 @@ contract Handcuffs {
         returns (
             uint256,
             uint256,
+            uint256,
+            address,
+            bool,
             address,
             bool,
             address,
