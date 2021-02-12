@@ -13,37 +13,67 @@ contract Handcuffs {
         _escrow = new TimelockEscrow();
     }
 
-    function deposit(uint256 lock_seconds) public payable {
-        _asyncTransfer(msg.sender, msg.value, lock_seconds);
+    function deposit(
+        address beneficiary,
+        uint256 lock_seconds,
+        uint256 numConfirmations,
+        address guardianOne,
+        address guardianTwo,
+        address guardianThree
+    ) public payable {
+        _asyncTransfer(
+            beneficiary,
+            msg.value,
+            numConfirmations,
+            lock_seconds,
+            guardianOne,
+            guardianTwo,
+            guardianThree
+        );
     }
 
     function withdraw(uint256 vaultIndex) public {
         _escrow.withdraw(msg.sender, vaultIndex);
     }
 
-    // function viewMyVaults() public view returns (uint256) {
-    //     return _escrow.get10Vaults(msg.sender);
-    // }
-
-    // catches if you send to the contract as if it's an address.
-    receive() external payable {
-        deposit(0);
-        // assume that it shouldn't be locked
+    function signWithdraw(address owner, uint256 vaultIndex) public {
+        _escrow.signWithdraw(msg.sender, owner, vaultIndex);
     }
 
     // creates a new TimelockEscrow vault
     function _asyncTransfer(
         address dest,
         uint256 amount,
-        uint256 lock_seconds
+        uint256 numConfirmations,
+        uint256 lock_seconds,
+        address guardianOne,
+        address guardianTwo,
+        address guardianThree
     ) internal virtual {
-        _escrow.deposit{value: amount}(dest, lock_seconds);
+        _escrow.deposit{value: amount}(
+            dest,
+            lock_seconds,
+            numConfirmations,
+            guardianOne,
+            guardianTwo,
+            guardianThree
+        );
     }
 
     function getVaultInfo(address owner, uint256 vaultIndex)
         public
         view
-        returns (uint256, uint256)
+        returns (
+            uint256,
+            uint256,
+            uint256,
+            address,
+            bool,
+            address,
+            bool,
+            address,
+            bool
+        )
     {
         return _escrow.getVaultInfo(owner, vaultIndex);
     }
