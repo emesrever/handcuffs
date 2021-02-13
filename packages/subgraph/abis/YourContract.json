@@ -6,7 +6,24 @@
   },
   {
     "inputs": [],
+<<<<<<< HEAD
     "name": "getOwner",
+=======
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "purpose",
+>>>>>>> ff7ae3989937001f000d28e32191534aeba04ef4
     "outputs": [
       {
         "internalType": "address",
