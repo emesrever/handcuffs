@@ -14,6 +14,9 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
   const [newVaultAmount, setNewVaultAmount] = useState();
   const [newVaultDuration, setNewVaultDuration] = useState();
 
+  const [newVaultGuardian1, setNewVaultGuardian1] = useState();
+  const [newVaultGuardian2, setNewVaultGuardian2] = useState();
+
   const fetchVaults = async () => {
     console.log("fetching vaults")
 
@@ -33,7 +36,11 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
 
       newVaults.push({
         amount: formatEther(newVault[0]),
-        unlocked_timestamp: end
+        unlocked_timestamp: end,
+        guardianOne: newVault[2],
+        guardianOneSigned: newVault[3],
+        guardianTwo: newVault[4],
+        guardianTwoSigned: newVault[5],
       })
     }
 
@@ -50,6 +57,7 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
           <th style={{padding:16}}>Vault Index</th>
           <th style={{padding:16}}>Amount</th>
           <th style={{padding:16}}>Uncuffed Time</th>
+          <th style={{padding:16}}>Guardians</th>
           <th style={{padding:16}}></th>
         </tr>
           {
@@ -60,11 +68,22 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
                   <td>{vault.amount}</td>
                   <td>{vault.unlocked_timestamp.toLocaleString()}</td>
                   <td>
-                    <Button onClick={()=>{
-                      console.log("withdrawing vault ",i);
-                      tx( writeContracts.Handcuffs.withdraw(i) );
-                      fetchVaults();
-                    }}>Withdraw</Button>
+
+                    <ul style={{listStyle:"none"}}>
+                      <li key="g1" style={ vault.guardianOneSigned ? {color:"green"} : {color:"red"} }>{vault.guardianOne}</li>
+                      <li key="g2" style={ vault.guardianTwoSigned ? {color:"green"} : {color:"red"} }>{vault.guardianTwo}</li>
+                    </ul>
+                  </td>
+                  <td>
+                    <Button
+                      onClick={()=>{
+                        console.log("withdrawing vault ",i);
+                        tx( writeContracts.Handcuffs.withdraw(i) );
+                        fetchVaults();
+                      }}
+                      disabled={vault.amount == 0}
+                    >Withdraw</Button>  
+
                   </td>
                 </tr>
               )
@@ -79,7 +98,7 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
     const durationSeconds = newVaultDuration * 60;
     const valueToSend = parseEther(newVaultAmount);
 
-    tx( writeContracts.Handcuffs.deposit(durationSeconds, {
+    tx( writeContracts.Handcuffs.deposit(durationSeconds, newVaultGuardian1, newVaultGuardian2, {
       value: valueToSend
     }) )
 
@@ -92,8 +111,9 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
       {/*
         ⚙️ Here is an example UI that displays and sets the purpose in your smart contract:
       */}
-      <div style={{border:"1px solid #cccccc", padding:16, width:400, margin:"auto",marginTop:64}}>
+      <div style={{border:"1px solid #cccccc", padding:16, width:800, margin:"auto",marginTop:64}}>
         <h2>Handcuffs</h2>
+
 
         Your Address:
         <Address
@@ -102,7 +122,16 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
             fontSize={16}
         />
 
-        <div>Your Balance: {yourLocalBalance?formatEther(yourLocalBalance):"..."}</div>
+
+          <Address
+              value={address}
+              ensProvider={mainnetProvider}
+              fontSize={16}
+          />
+
+          <div>{yourLocalBalance?formatEther(yourLocalBalance):"..."}</div>
+
+        </div>
 
         <div style={{margin:8}}>
           <Button onClick={()=>{
@@ -126,6 +155,16 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
             placeholder="Duration (mins)"
             onChange={e => setNewVaultDuration(e.target.value)}
             value={newVaultDuration}
+          />
+          <Input
+            placeholder="Guardian #1 address"
+            onChange={e => setNewVaultGuardian1(e.target.value)}
+            value={newVaultGuardian1}
+          />
+          <Input
+            placeholder="Guardian #2 address"
+            onChange={e => setNewVaultGuardian1(e.target.value)}
+            value={newVaultGuardian2}
           />
           <Button onClick={()=>{
             console.log("creating new vault")
