@@ -13,10 +13,10 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
   const [vaults, setVaults] = useState([]);
   const [newVaultAmount, setNewVaultAmount] = useState();
   const [newVaultDuration, setNewVaultDuration] = useState();
-  
+
   const fetchVaults = async () => {
     console.log("fetching vaults")
-    
+
     const vaultCountBN = await readContracts.Handcuffs.getVaultCount(address);
     const vaultCount = vaultCountBN.toNumber();
 
@@ -41,7 +41,7 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
   }
 
   const renderVaultList = () => {
-    return vaults.length == 0 ? 
+    return vaults.length == 0 ?
       (<div></div>)
     :
       (
@@ -64,7 +64,7 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
                       console.log("withdrawing vault ",i);
                       tx( writeContracts.Handcuffs.withdraw(i) );
                       fetchVaults();
-                    }}>Withdraw</Button>  
+                    }}>Withdraw</Button>
                   </td>
                 </tr>
               )
@@ -94,7 +94,7 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
       */}
       <div style={{border:"1px solid #cccccc", padding:16, width:400, margin:"auto",marginTop:64}}>
         <h2>Handcuffs</h2>
-        
+
         Your Address:
         <Address
             value={address}
@@ -150,16 +150,6 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
 
         <Divider />
 
-<<<<<<< HEAD
-=======
-        Your Address:
-        <Address
-            address={address}
-            ensProvider={mainnetProvider}
-            fontSize={16}
-        />
-
->>>>>>> ff7ae3989937001f000d28e32191534aeba04ef4
         <Divider />
 
         ENS Address Example:
@@ -194,11 +184,7 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
 
         Your Contract Address:
         <Address
-<<<<<<< HEAD
             value={readContracts?readContracts.Handcuffs.address:readContracts}
-=======
-            address={readContracts?readContracts.YourContract.address:readContracts}
->>>>>>> ff7ae3989937001f000d28e32191534aeba04ef4
             ensProvider={mainnetProvider}
             fontSize={16}
         />
