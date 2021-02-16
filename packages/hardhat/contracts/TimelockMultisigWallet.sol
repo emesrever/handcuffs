@@ -13,7 +13,7 @@ contract TimelockMultisigWallet is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    uint256 public beneficiary
+    address payable public beneficiary;
     uint256 public amount;
     uint256 public unlocked_timestamp;
     uint256 public numConfirmations;
@@ -73,89 +73,77 @@ contract TimelockMultisigWallet is Ownable {
         address _guardianOne,
         address _guardianTwo,
         address _guardianThree
-    ) public payable virtual onlyOwner {
+    ) public payable {
         require(_payee != _guardianOne &&
             _payee != _guardianTwo &&
             _payee != _guardianThree, "beneficiary cannot be guardian");
         require(_guardianOne != _guardianTwo &&
                 _guardianTwo != _guardianThree &&
-                guardianOne != guardianThree, "Guardians must be unique");
-        require(numConfirmations <= 3, "Required Confirmations must be 3 or fewer");
+                _guardianOne != _guardianThree, "Guardians must be unique");
+        require(_numConfirmations <= 3, "Required Confirmations must be 3 or fewer");
 
-        _vaults[payee].push(
-            Vault({
-                amount: msg.value,
-                unlocked_timestamp: block.timestamp + lock_seconds,
-                numConfirmations: numConfirmations,
-                guardianOne: guardianOne,
-                guardianOneSigned: false,
-                guardianTwo: guardianTwo,
-                guardianTwoSigned: false,
-                guardianThree: guardianThree,
-                guardianThreeSigned: false
-            })
-        );
+        amount = msg.value;
+        unlocked_timestamp = block.timestamp + _lock_seconds;
+        numConfirmations = _numConfirmations;
+        guardianOne = _guardianOne;
+        guardianOneSigned = false;
+        guardianTwo = _guardianTwo;
+        guardianTwoSigned= false;
+        guardianThree = _guardianThree;
+        guardianThreeSigned = false;
+
+
     }
 
-    function deposit(address payee, uint256 vaultIndex) public payable virtual onlyOwner
-        validVault(payee, vaultIndex)
+    function deposit() public payable virtual onlyOwner
     {
-            _vaults[payee][vaultIndex].amount += msg.value;
+            amount += msg.value;
     }
 
-    function withdraw(address payable payee, uint256 vaultIndex)
+    function withdraw()
         public
         virtual
         onlyOwner
-        validVault(payee, vaultIndex)
     {
+        // TODO: create test - what if the payee address is not payable?
         require(
-            withdrawalAllowed(payee, vaultIndex),
+            withdrawalAllowed(),
             "does not meet withdraw requirements"
         );
 
-        uint256 payment = _vaults[payee][vaultIndex].amount;
+        uint256 payment = amount;
 
-        _vaults[payee][vaultIndex].amount = 0;
+        amount = 0;
 
-        payee.sendValue(payment);
+        beneficiary.sendValue(payment);
     }
 
-    function signWithdraw(
-        address signer,
-        address owner,
-        uint256 vaultIndex
-    )
+    /* function withdrawToken(address tokenAddress){
+
+    } */
+
+    function signWithdraw(address signer)
         public
-        validVault(owner, vaultIndex)
-        validSigner(signer, owner, vaultIndex)
+        validSigner(signer)
         onlyOwner
     {
-        if (signer == _vaults[owner][vaultIndex].guardianOne) {
-            _vaults[owner][vaultIndex].guardianOneSigned = true;
-        }
-
-        if (signer == _vaults[owner][vaultIndex].guardianTwo) {
-            _vaults[owner][vaultIndex].guardianTwoSigned = true;
-        }
-
-        if (signer == _vaults[owner][vaultIndex].guardianThree) {
-            _vaults[owner][vaultIndex].guardianThreeSigned = true;
-        }
+        if (signer == guardianOne) {guardianOneSigned = true;}
+        if (signer == guardianTwo) {guardianTwoSigned = true;}
+        if (signer == guardianThree) {guardianThreeSigned = true;}
     }
 
-    function withdrawalAllowed(address payee, uint256 vaultIndex)
+    function withdrawalAllowed()
         public
         view
         onlyOwner
         returns (bool)
     {
         if (
-            block.timestamp >= _vaults[payee][vaultIndex].unlocked_timestamp ||
-            ((_vaults[payee][vaultIndex].guardianOneSigned ? 1 : 0) +
-                (_vaults[payee][vaultIndex].guardianTwoSigned ? 1 : 0) +
-                (_vaults[payee][vaultIndex].guardianThreeSigned ? 1 : 0) >=
-                _vaults[payee][vaultIndex].numConfirmations)
+            block.timestamp >= unlocked_timestamp ||
+            ((guardianOneSigned ? 1 : 0) +
+                (guardianTwoSigned ? 1 : 0) +
+                (guardianThreeSigned ? 1 : 0) >=
+                numConfirmations)
         ) {
             return true;
         } else {

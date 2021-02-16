@@ -2,55 +2,51 @@ pragma solidity >=0.6.0 <0.8.0;
 //SPDX-License-Identifier: MIT
 
 import "hardhat/console.sol";
-import "./TimelockEscrow.sol";
+import "./TimelockMultisigWallet.sol";
 
 // import "@openzeppelin/contracts/payment/PullPayment.sol";
 
 contract Handcuffs {
-    TimelockEscrow private _escrow;
 
-    constructor() public {
-        _escrow = new TimelockEscrow();
-    }
+    mapping(address => TimelockMultisigWallet[]) public wallets;
 
     function deposit(
         address beneficiary,
         uint256 vaultIndex
     ) public payable {
-        _escrow.deposit{value: msg.value}(
-            beneficiary,
-            vaultIndex
-        );
+        wallets[beneficiary][vaultIndex].deposit{value: msg.value}();
     }
 
     function withdraw(uint256 vaultIndex) public {
-        _escrow.withdraw(msg.sender, vaultIndex);
+        wallets[msg.sender][vaultIndex].withdraw();
     }
 
-    function signWithdraw(address owner, uint256 vaultIndex) public {
-        _escrow.signWithdraw(msg.sender, owner, vaultIndex);
+    function signWithdraw(address beneficiary, uint256 vaultIndex) public {
+        wallets[beneficiary][vaultIndex].signWithdraw(msg.sender);
     }
 
     // creates a new TimelockEscrow vault
-    function createVault(
-        address dest,
+    function createWallet(
+        address beneficiary,
         uint256 numConfirmations,
         uint256 lock_seconds,
         address guardianOne,
         address guardianTwo,
         address guardianThree
     ) public payable {
-        _escrow.createVault{value: msg.value}(
-            dest,
-            lock_seconds,
-            numConfirmations,
-            guardianOne,
-            guardianTwo,
-            guardianThree
-        );
+        wallets[beneficiary].push(
+            new TimelockMultisigWallet{value: msg.value}(
+                    beneficiary,
+                    lock_seconds,
+                    numConfirmations,
+                    guardianOne,
+                    guardianTwo,
+                    guardianThree
+                )
+            );
     }
 
-    function getVaultInfo(address owner, uint256 vaultIndex)
+    function getWalletInfo(address beneficiary, uint256 vaultIndex)
         public
         view
         returns (
@@ -65,10 +61,10 @@ contract Handcuffs {
             bool
         )
     {
-        return _escrow.getVaultInfo(owner, vaultIndex);
+        return wallets[beneficiary][vaultIndex].getInfo();
     }
 
-    function getVaultCount(address owner) public view returns (uint256) {
-        return _escrow.getVaultCount(owner);
+    function getVaultCount(address beneficiary) public view returns (uint256) {
+        return wallets[beneficiary].length;
     }
 }
