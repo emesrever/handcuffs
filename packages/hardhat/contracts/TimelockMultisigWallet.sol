@@ -14,6 +14,7 @@ contract TimelockMultisigWallet is Ownable {
     using SafeERC20 for IERC20;
 
     address payable public beneficiary;
+    // TODO: if each wallet has its own balance - do we need a total amount?
     uint256 public amount;
     uint256 public unlocked_timestamp;
     uint256 public numConfirmations;
@@ -67,7 +68,7 @@ contract TimelockMultisigWallet is Ownable {
     }
 
     constructor(
-        address _payee,
+        address payable _payee,
         uint256 _lock_seconds,
         uint256 _numConfirmations,
         address _guardianOne,
@@ -83,6 +84,7 @@ contract TimelockMultisigWallet is Ownable {
         require(_numConfirmations <= 3, "Required Confirmations must be 3 or fewer");
 
         amount = msg.value;
+        beneficiary = _payee;
         unlocked_timestamp = block.timestamp + _lock_seconds;
         numConfirmations = _numConfirmations;
         guardianOne = _guardianOne;
@@ -98,6 +100,10 @@ contract TimelockMultisigWallet is Ownable {
     function deposit() public payable virtual onlyOwner
     {
             amount += msg.value;
+    }
+
+    // keep all the ether sent to this address
+    receive() external payable{
     }
 
     function withdraw()
@@ -118,9 +124,19 @@ contract TimelockMultisigWallet is Ownable {
         beneficiary.sendValue(payment);
     }
 
-    /* function withdrawToken(address tokenAddress){
-
-    } */
+    function withdrawTokens(address _tokenContract) onlyOwner public {
+        require(
+            withdrawalAllowed(),
+            "does not meet withdraw requirements"
+        );
+       IERC20 token = IERC20(_tokenContract);
+       //now send all the token balance
+       uint256 tokenBalance = token.balanceOf(address(this));
+       console.log("Token Sent: ", _tokenContract);
+       console.log("Beneficiary: ", beneficiary);
+       console.log("Amount: ", tokenBalance);
+       token.transfer(beneficiary, tokenBalance);
+    }
 
     function signWithdraw(address signer)
         public

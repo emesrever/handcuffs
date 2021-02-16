@@ -7,6 +7,7 @@ import "./TimelockMultisigWallet.sol";
 // import "@openzeppelin/contracts/payment/PullPayment.sol";
 
 contract Handcuffs {
+    using SafeERC20 for IERC20;
 
     mapping(address => TimelockMultisigWallet[]) public wallets;
 
@@ -17,8 +18,25 @@ contract Handcuffs {
         wallets[beneficiary][vaultIndex].deposit{value: msg.value}();
     }
 
+    // TODO: figure out what's up with this function
+    // unclear if this function is strictly necessary
+    // Theoretically if people knew the address of this contract, they
+    // could just send to the address directly
+    function getWalletAddress(address beneficiary, uint256 vaultIndex)
+        public
+        view
+        returns(address){
+        console.log(address(wallets[beneficiary][vaultIndex]), " is the wallet address");
+        return address(wallets[beneficiary][vaultIndex]);
+    }
+
+
     function withdraw(uint256 vaultIndex) public {
         wallets[msg.sender][vaultIndex].withdraw();
+    }
+
+    function withdrawTokens(uint256 vaultIndex, address tokenContract) public {
+        wallets[msg.sender][vaultIndex].withdrawTokens(tokenContract);
     }
 
     function signWithdraw(address beneficiary, uint256 vaultIndex) public {
@@ -27,7 +45,7 @@ contract Handcuffs {
 
     // creates a new TimelockEscrow vault
     function createWallet(
-        address beneficiary,
+        address payable beneficiary,
         uint256 numConfirmations,
         uint256 lock_seconds,
         address guardianOne,
