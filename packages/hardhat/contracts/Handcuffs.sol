@@ -14,21 +14,22 @@ contract Handcuffs {
     }
 
     function deposit(
-        address beneficiary,
-        uint256 lock_seconds,
+        uint256 lockSeconds,
         uint256 numConfirmations,
         address guardianOne,
         address guardianTwo,
-        address guardianThree
+        address guardianThree,
+        address beneficiary
     ) public payable {
         _asyncTransfer(
-            beneficiary,
+            msg.sender,
             msg.value,
+            lockSeconds,
             numConfirmations,
-            lock_seconds,
             guardianOne,
             guardianTwo,
-            guardianThree
+            guardianThree,
+            beneficiary
         );
     }
 
@@ -36,31 +37,33 @@ contract Handcuffs {
         _escrow.withdraw(msg.sender, vaultIndex);
     }
 
-    function signWithdraw(address owner, uint256 vaultIndex) public {
-        _escrow.signWithdraw(msg.sender, owner, vaultIndex);
+    function signWithdraw(address creator, uint256 vaultIndex) public {
+        _escrow.signWithdraw(msg.sender, creator, vaultIndex);
     }
 
     // creates a new TimelockEscrow vault
     function _asyncTransfer(
-        address dest,
+        address creator,
         uint256 amount,
+        uint256 lockSeconds,
         uint256 numConfirmations,
-        uint256 lock_seconds,
         address guardianOne,
         address guardianTwo,
-        address guardianThree
+        address guardianThree,
+        address beneficiary
     ) internal virtual {
         _escrow.deposit{value: amount}(
-            dest,
-            lock_seconds,
+            creator,
+            lockSeconds,
             numConfirmations,
             guardianOne,
             guardianTwo,
-            guardianThree
+            guardianThree,
+            beneficiary
         );
     }
 
-    function getVaultInfo(address owner, uint256 vaultIndex)
+    function getVaultInfo(address creator, uint256 vaultIndex)
         public
         view
         returns (
@@ -75,10 +78,10 @@ contract Handcuffs {
             bool
         )
     {
-        return _escrow.getVaultInfo(owner, vaultIndex);
+        return _escrow.getVaultInfo(creator, vaultIndex);
     }
 
-    function getVaultCount(address owner) public view returns (uint256) {
-        return _escrow.getVaultCount(owner);
+    function getVaultCount(address creator) public view returns (uint256) {
+        return _escrow.getVaultCount(creator);
     }
 }

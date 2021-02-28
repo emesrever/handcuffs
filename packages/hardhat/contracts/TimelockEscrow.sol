@@ -13,7 +13,7 @@ contract TimelockEscrow is Ownable {
 
     struct Vault {
         uint256 amount;
-        uint256 unlocked_timestamp;
+        uint256 unlockedTimestamp;
         uint256 numConfirmations;
         address guardianOne;
         bool guardianOneSigned;
@@ -21,35 +21,36 @@ contract TimelockEscrow is Ownable {
         bool guardianTwoSigned;
         address guardianThree;
         bool guardianThreeSigned;
+        address beneficiary;
     }
 
     mapping(address => Vault[]) private _vaults;
 
-    modifier validVault(address owner, uint256 vaultIndex) {
-        require(_vaults[owner].length > vaultIndex, "vault doesnt exist");
+    modifier validVault(address creator, uint256 vaultIndex) {
+        require(_vaults[creator].length > vaultIndex, "vault doesnt exist");
         _;
     }
 
     modifier validSigner(
         address signee,
-        address owner,
+        address creator,
         uint256 vaultIndex
     ) {
         require(
-            _vaults[owner][vaultIndex].guardianOne == signee ||
-                _vaults[owner][vaultIndex].guardianTwo == signee ||
-                _vaults[owner][vaultIndex].guardianThree == signee,
+            _vaults[creator][vaultIndex].guardianOne == signee ||
+                _vaults[creator][vaultIndex].guardianTwo == signee ||
+                _vaults[creator][vaultIndex].guardianThree == signee,
             "invalid signer"
         );
         _;
     }
 
     // returns vault amount
-    function getVaultInfo(address owner, uint256 vaultIndex)
+    function getVaultInfo(address creator, uint256 vaultIndex)
         public
         view
         onlyOwner
-        validVault(owner, vaultIndex)
+        validVault(creator, vaultIndex)
         returns (
             uint256,
             uint256,
@@ -63,12 +64,12 @@ contract TimelockEscrow is Ownable {
         )
     {
         console.log(vaultIndex);
-        console.log(_vaults[owner].length);
+        console.log(_vaults[creator].length);
 
-        Vault memory vault = _vaults[owner][vaultIndex];
+        Vault memory vault = _vaults[creator][vaultIndex];
         return (
             vault.amount,
-            vault.unlocked_timestamp,
+            vault.unlockedTimestamp,
             vault.numConfirmations,
             vault.guardianOne,
             vault.guardianOneSigned,
@@ -79,42 +80,53 @@ contract TimelockEscrow is Ownable {
         );
     }
 
-    function getVaultCount(address owner)
+    function getVaultCount(address creator)
         public
         view
         onlyOwner
         returns (uint256)
     {
-        return _vaults[owner].length;
+        return _vaults[creator].length;
     }
 
     function deposit(
-        address payee,
-        uint256 lock_seconds,
+        address creator,
+        uint256 lockSeconds,
         uint256 numConfirmations,
         address guardianOne,
         address guardianTwo,
-        address guardianThree
+        address guardianThree,
+        address beneficiary
     ) public payable virtual onlyOwner {
-        require(payee != guardianOne &&
-            payee != guardianTwo &&
-            payee != guardianThree, "beneficiary cannot be guardian");
-        require(guardianOne != guardianTwo &&
+        require(
+            beneficiary != guardianOne &&
+                beneficiary != guardianTwo &&
+                beneficiary != guardianThree,
+            "beneficiary cannot be guardian"
+        );
+        require(
+            guardianOne != guardianTwo &&
                 guardianTwo != guardianThree &&
-                guardianOne != guardianThree, "Guardians must be unique");
-        require(numConfirmations <= 3, "Required Confirmations must be 3 or fewer");
+                guardianOne != guardianThree,
+            "Guardians must be unique"
+        );
+        require(
+            numConfirmations <= 3,
+            "Required Confirmations must be 3 or fewer"
+        );
 
-        _vaults[payee].push(
+        _vaults[creator].push(
             Vault({
                 amount: msg.value,
-                unlocked_timestamp: block.timestamp + lock_seconds,
+                unlockedTimestamp: block.timestamp + lockSeconds,
                 numConfirmations: numConfirmations,
                 guardianOne: guardianOne,
                 guardianOneSigned: false,
                 guardianTwo: guardianTwo,
                 guardianTwoSigned: false,
                 guardianThree: guardianThree,
-                guardianThreeSigned: false
+                guardianThreeSigned: false,
+                beneficiary: beneficiary
             })
         );
     }
@@ -139,24 +151,20 @@ contract TimelockEscrow is Ownable {
 
     function signWithdraw(
         address signer,
-        address owner,
+        address creator,
         uint256 vaultIndex
     )
         public
-        validVault(owner, vaultIndex)
-        validSigner(signer, owner, vaultIndex)
+        validVault(creator, vaultIndex)
+        validSigner(signer, creator, vaultIndex)
         onlyOwner
     {
-        if (signer == _vaults[owner][vaultIndex].guardianOne) {
-            _vaults[owner][vaultIndex].guardianOneSigned = true;
-        }
-
-        if (signer == _vaults[owner][vaultIndex].guardianTwo) {
-            _vaults[owner][vaultIndex].guardianTwoSigned = true;
-        }
-
-        if (signer == _vaults[owner][vaultIndex].guardianThree) {
-            _vaults[owner][vaultIndex].guardianThreeSigned = true;
+        if (signer == _vaults[creator][vaultIndex].guardianOne) {
+            _vaults[creator][vaultIndex].guardianOneSigned = true;
+        } else if (signer == _vaults[creator][vaultIndex].guardianTwo) {
+            _vaults[creator][vaultIndex].guardianTwoSigned = true;
+        } else if (signer == _vaults[creator][vaultIndex].guardianThree) {
+            _vaults[creator][vaultIndex].guardianThreeSigned = true;
         }
     }
 
@@ -167,7 +175,7 @@ contract TimelockEscrow is Ownable {
         returns (bool)
     {
         if (
-            block.timestamp >= _vaults[payee][vaultIndex].unlocked_timestamp ||
+            block.timestamp >= _vaults[payee][vaultIndex].unlockedTimestamp ||
             ((_vaults[payee][vaultIndex].guardianOneSigned ? 1 : 0) +
                 (_vaults[payee][vaultIndex].guardianTwoSigned ? 1 : 0) +
                 (_vaults[payee][vaultIndex].guardianThreeSigned ? 1 : 0) >=
