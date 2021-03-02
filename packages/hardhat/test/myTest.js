@@ -1,3 +1,7 @@
+// need to install the openzeppelin testing suites separately:
+// $ npm install --save-dev @openzeppelin/test-environment
+// $ npm install --save-dev @openzeppelin/test-helpers
+
 const { ethers } = require("hardhat");
 const { use, expect } = require("chai");
 const { solidity } = require("ethereum-waffle");
@@ -49,15 +53,15 @@ describe("Handcuffs", function () {
     describe("Wallet creation functionality", function () {
       it("Create a basic wallet with no timelock, no confirmations, with 1 eth", async function () {
 
-          tx( myContract.createWallet(
+         await myContract.createWallet(
               owner,
               0, // num confirmations
               0, // lock_seconds
               guard1,
               guard2,
               guard3, {
-            value: parseEther(1)
-        }))
+            value: parseEther('1.0') // parseEther expects a string
+        });
 
 
       });
