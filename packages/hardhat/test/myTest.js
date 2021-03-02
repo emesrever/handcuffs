@@ -54,12 +54,11 @@ describe("Handcuffs", function () {
       it("Create a basic wallet with no timelock, no confirmations, with 1 eth", async function () {
 
          await myContract.createVaultSelfBeneficiary(
-              owner,
               0, // num confirmations
               0, // lock_seconds
-              guard1,
-              guard2,
-              guard3, {
+              guard1.address,
+              guard2.address,
+              guard3.address, {
             value: parseEther('1.0') // parseEther expects a string
         });
 
