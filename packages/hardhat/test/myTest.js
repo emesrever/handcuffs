@@ -2,6 +2,7 @@ const { ethers } = require("hardhat");
 const { use, expect } = require("chai");
 const { solidity } = require("ethereum-waffle");
 const { accounts, contract } = require('@openzeppelin/test-environment');
+const { parseEther } = require('@ethersproject/units');
 
 const {
   BN,           // Big Number support
@@ -35,39 +36,30 @@ describe("Handcuffs", function () {
   let guard2;
   let guard3;
 
-  beforeEach(async function()) {
-      // Get the ContractFactory and Signers here.
-      [owner, guard1, guard2, guard3] = await ethers.getSigners();
-
-      const Handcuffs = await ethers.getContractFactory("Handcuffs");
-      myContract = await Handcuffs.deploy();
-
-  }
-
   describe("Handcuffs", function () {
     it("Should deploy Handcuffs", async function () {
       const Handcuffs = await ethers.getContractFactory("Handcuffs");
 
       myContract = await Handcuffs.deploy();
+
+      // Get the ContractFactory and Signers here.
+      [owner, guard1, guard2, guard3] = await ethers.getSigners();
     });
 
-    describe("Create basic wallet with no time lock and no confirmations required", function () {
-      it("Should be able to deposit", async function () {
-          address payable beneficiary,
-          uint256 numConfirmations,
-          uint256 lock_seconds,
-          address guardianOne,
-          address guardianTwo,
-          address guardianThree
+    describe("Wallet creation functionality", function () {
+      it("Create a basic wallet with no timelock, no confirmations, with 1 eth", async function () {
 
-        await myContract.createWallet(owner,
-            0, // num confirmations
-            0, // lock_seconds
-            guard1,
-            guard2,
-            guard3
-            );
-        expect(await myContract.purpose()).to.equal(newPurpose);
+          tx( myContract.createWallet(
+              owner,
+              0, // num confirmations
+              0, // lock_seconds
+              guard1,
+              guard2,
+              guard3, {
+            value: parseEther(1)
+        }))
+
+
       });
     });
   });
