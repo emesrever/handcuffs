@@ -53,7 +53,7 @@ describe("Handcuffs", function () {
     describe("Wallet creation functionality", function () {
       it("Create a basic wallet with no timelock, no confirmations, with 1 eth", async function () {
 
-         await myContract.createWallet(
+         await myContract.createVaultSelfBeneficiary(
               owner,
               0, // num confirmations
               0, // lock_seconds
