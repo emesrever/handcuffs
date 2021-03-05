@@ -87,44 +87,35 @@ describe("Handcuffs", function () {
 
       it("Basic wallet should allow deposit from self", async function() {
         await hc_instance.depositIntoExistingVault(owner.address, 0, {value: parseEther('1.0')});
-
         let getVaultInfoResults = await hc_instance.getVaultInfo(owner.address, 0);
-
         expect(getVaultInfoResults[0]).to.equal(parseEther('2.0')); // eth amount
       });
 
       it("Basic wallet should allow deposit from others", async function() {
         let contractFromGuard1 = hc_instance.connect(guard1);
-
         await contractFromGuard1.depositIntoExistingVault(owner.address, 0, {value: parseEther('1.0')});
-
         let getVaultInfoResults = await contractFromGuard1.getVaultInfo(owner.address, 0);
-
         expect(getVaultInfoResults[0]).to.equal(parseEther('3.0')); // eth amount
       });
 
       it("Basic wallet should not allow nonbeneficiary to withdraw", async function() {
-
         await expectRevert(hc_instance.connect(guard2).withdraw(guard2.address, owner.address, 0),
-        "Only the beneficiary can withdraw from the vault"
+          "Only the beneficiary can withdraw from the vault"
         );
-
       });
 
       it("Basic wallet should allow withdrawal", async function() {
-
         await hc_instance.withdraw(owner.address, owner.address, 0);
-
         let getVaultInfoResults = await hc_instance.getVaultInfo(owner.address, 0);
-
         expect(getVaultInfoResults[0]).to.equal(parseEther('0')); // eth amount
       });
 
     });
     describe("Multi Sig Functionality", function(){
-      it("Create a basic wallet with no timelock, no confirmations", async function () {
+      it("Create a multisig wallet with one year timelock, needing 2 confirmations", async function () {
         await hc_instance.createVaultSelfBeneficiary(
           time.duration.years(1).toNumber(), // lock_seconds - time lock shouldn't trigger.
+          // note that time.duration returns a BN, and BN objects need to be cast to the right format
           2, // num confirmations
           guard1.address,
           guard2.address,
@@ -138,6 +129,38 @@ describe("Handcuffs", function () {
           "vault not eligible for withdraw yet"
         );
       });
+
+      it("Multi Sig wallet should be withdrawable after N signatures when time has not passed",
+      async function() {
+        await hc_instance.connect(guard1).signWithdraw(owner.address,1);
+        await hc_instance.connect(guard2).signWithdraw(owner.address,1);
+        await hc_instance.withdraw(owner.address, owner.address, 1);
+
+        let getVaultInfoResults = await hc_instance.getVaultInfo(owner.address, 1);
+        expect(getVaultInfoResults[0]).to.equal(parseEther('0'));
+      });
+    });
+    describe("Timelock functionality", function(){
+      it("Create a multisig wallet with one year timelock, needing 3 confirmations", async function () {
+        await hc_instance.createVaultSelfBeneficiary(
+          time.duration.years(1).toNumber(), // lock_seconds - time lock shouldn't trigger.
+          // note that time.duration returns a BN, and BN objects need to be cast to the right format
+          3, // num confirmations
+          guard1.address,
+          guard2.address,
+          guard3.address, {
+            value: parseEther('1.0') // parseEther expects a string
+          });
+      });
+
+      it("Wallet should be withdrawable after the time has passed with no signatures", async function() {
+        await time.increase(time.duration.years(1));
+        await hc_instance.withdraw(owner.address, owner.address, 1);
+
+        let getVaultInfoResults = await hc_instance.getVaultInfo(owner.address, 1);
+        expect(getVaultInfoResults[0]).to.equal(parseEther('0'));
+      });
+
     });
   });
 });
