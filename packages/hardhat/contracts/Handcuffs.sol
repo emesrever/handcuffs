@@ -59,7 +59,7 @@ contract Handcuffs {
                     (
                         _vaults[creator][vaultIndex].guardianThreeSigned ? 1 : 0
                     )) >= _vaults[creator][vaultIndex].numConfirmations),
-            "vault not eligable for withdraw yet"
+            "vault not eligible for withdraw yet"
         );
 
         require(
@@ -144,7 +144,7 @@ contract Handcuffs {
     )
         public
         validVault(creator, vaultIndex)
-        // the below verifies it is eligable and that the sender is the beneficiary
+        // the below verifies it is eligible and that the sender is the beneficiary
         withdrawalAllowed(creator, vaultIndex, msg.sender)
     {
         uint256 withdrawAmount = _vaults[creator][vaultIndex].amount;
