@@ -32,12 +32,12 @@ const deploy = async (contractName, _args = [], overrides = {}, libraries = {}) 
 
 
   /* The following two lines do the initial deployment of the proxy/implementation contracts */
-  // const deployed = await upgrades.deployProxy(Handcuffs, _args);
-  // await deployed.deployed();
+  const deployed = await upgrades.deployProxy(Handcuffs, _args);
+  await deployed.deployed();
 
   /* Once the above is run, all future deployments use the below.  Take the address returned above and put it in proxyAddress */
-  const proxyAddress = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9";
-  const deployed = await upgrades.upgradeProxy(proxyAddress, Handcuffs);
+  // const proxyAddress = ""; // Make sure to set this after you deploy above
+  // const deployed = await upgrades.upgradeProxy(proxyAddress, Handcuffs);
 
 
   const encoded = abiEncodeArgs(deployed, contractArgs);
