@@ -1,7 +1,7 @@
 /* eslint no-use-before-define: "warn" */
 const fs = require("fs");
 const chalk = require("chalk");
-const { config, ethers } = require("hardhat");
+const { config, ethers, upgrades } = require("hardhat");
 const { utils } = require("ethers");
 const R = require("ramda");
 
@@ -58,8 +58,25 @@ const deploy = async (contractName, _args = [], overrides = {}, libraries = {}) 
   console.log(` 🛰  Deploying: ${contractName}`);
 
   const contractArgs = _args || [];
+
+
   const contractArtifacts = await ethers.getContractFactory(contractName,{libraries: libraries});
-  const deployed = await contractArtifacts.deploy(...contractArgs, overrides);
+  // const deployed = await contractArtifacts.deploy(...contractArgs, overrides);
+
+  // https://hardhat.org/guides/deploying.html
+  // https://hardhat.org/plugins/hardhat-upgrades.html#usage-in-tests
+  // https://github.com/emesrever/handcuffs/blob/jy/tests/packages/hardhat/test/Handcuffs_test.js
+
+  // initial
+  // const deployed = await upgrades.deployProxy(contractArtifacts, _args);
+  // await deployed.deployed();
+
+  const proxyAddress = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9";
+
+  // upgrading
+  const deployed = await upgrades.upgradeProxy(proxyAddress, contractArtifacts);
+
+
   const encoded = abiEncodeArgs(deployed, contractArgs);
   fs.writeFileSync(`artifacts/${contractName}.address`, deployed.address);
 

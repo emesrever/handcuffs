@@ -24,8 +24,6 @@ contract Handcuffs {
 
     mapping(address => Vault[]) private _vaults;
 
-    constructor() public {}
-
     /*                             Modifiers                                  */
     modifier validSigner(
         address signee,
