@@ -9,43 +9,7 @@ const main = async () => {
 
   console.log("\n\n 📡 Deploying...\n");
 
-
-  // const owned = await deploy("Owned") // <-- add in constructor args like line 19 vvvv
-
   const handcuffs = await deploy("Handcuffs")
-
-  // const exampleToken = await deploy("ExampleToken")
-  // const examplePriceOracle = await deploy("ExamplePriceOracle")
-  // const smartContractWallet = await deploy("SmartContractWallet",[exampleToken.address,examplePriceOracle.address])
-
-
-
-  /*
-  //If you want to send value to an address from the deployer
-  const deployerWallet = ethers.provider.getSigner()
-  await deployerWallet.sendTransaction({
-    to: "0x34aA3F359A9D614239015126635CE7732c18fDF3",
-    value: ethers.utils.parseEther("0.001")
-  })
-  */
-
-
-  /*
-  //If you want to send some ETH to a contract on deploy (make your constructor payable!)
-  const yourContract = await deploy("YourContract", [], {
-  value: ethers.utils.parseEther("0.05")
-  });
-  */
-
-
-  /*
-  //If you want to link a library into your contract:
-  // reference: https://github.com/austintgriffith/scaffold-eth/blob/using-libraries-example/packages/hardhat/scripts/deploy.js#L19
-  const yourContract = await deploy("YourContract", [], {}, {
-   LibraryName: **LibraryAddress**
-  });
-  */
-
 
   console.log(
     " 💾  Artifacts (address, abi, and args) saved to: ",
@@ -60,21 +24,20 @@ const deploy = async (contractName, _args = [], overrides = {}, libraries = {}) 
   const contractArgs = _args || [];
 
 
-  const contractArtifacts = await ethers.getContractFactory(contractName,{libraries: libraries});
-  // const deployed = await contractArtifacts.deploy(...contractArgs, overrides);
+  const Handcuffs = await ethers.getContractFactory(contractName,{libraries: libraries});
 
+  /* Useful links to learn about hardhat deployments/upgrades and testing */
   // https://hardhat.org/guides/deploying.html
   // https://hardhat.org/plugins/hardhat-upgrades.html#usage-in-tests
-  // https://github.com/emesrever/handcuffs/blob/jy/tests/packages/hardhat/test/Handcuffs_test.js
 
-  // initial
-  // const deployed = await upgrades.deployProxy(contractArtifacts, _args);
+
+  /* The following two lines do the initial deployment of the proxy/implementation contracts */
+  // const deployed = await upgrades.deployProxy(Handcuffs, _args);
   // await deployed.deployed();
 
+  /* Once the above is run, all future deployments use the below.  Take the address returned above and put it in proxyAddress */
   const proxyAddress = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9";
-
-  // upgrading
-  const deployed = await upgrades.upgradeProxy(proxyAddress, contractArtifacts);
+  const deployed = await upgrades.upgradeProxy(proxyAddress, Handcuffs);
 
 
   const encoded = abiEncodeArgs(deployed, contractArgs);
