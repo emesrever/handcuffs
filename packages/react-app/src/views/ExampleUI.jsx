@@ -13,13 +13,13 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
   const [vaults, setVaults] = useState([]);
   const [newVaultAmount, setNewVaultAmount] = useState();
   const [newVaultDuration, setNewVaultDuration] = useState();
+
   const [newVaultGuardian1, setNewVaultGuardian1] = useState();
   const [newVaultGuardian2, setNewVaultGuardian2] = useState();
 
-  
   const fetchVaults = async () => {
     console.log("fetching vaults")
-    
+
     const vaultCountBN = await readContracts.Handcuffs.getVaultCount(address);
     const vaultCount = vaultCountBN.toNumber();
 
@@ -48,7 +48,7 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
   }
 
   const renderVaultList = () => {
-    return vaults.length == 0 ? 
+    return vaults.length == 0 ?
       (<div></div>)
     :
       (
@@ -68,6 +68,7 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
                   <td>{vault.amount}</td>
                   <td>{vault.unlocked_timestamp.toLocaleString()}</td>
                   <td>
+
                     <ul style={{listStyle:"none"}}>
                       <li key="g1" style={ vault.guardianOneSigned ? {color:"green"} : {color:"red"} }>{vault.guardianOne}</li>
                       <li key="g2" style={ vault.guardianTwoSigned ? {color:"green"} : {color:"red"} }>{vault.guardianTwo}</li>
@@ -82,6 +83,7 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
                       }}
                       disabled={vault.amount == 0}
                     >Withdraw</Button>  
+
                   </td>
                 </tr>
               )
@@ -111,8 +113,15 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
       */}
       <div style={{border:"1px solid #cccccc", padding:16, width:800, margin:"auto",marginTop:64}}>
         <h2>Handcuffs</h2>
-        
-        <div>
+
+
+        Your Address:
+        <Address
+            value={address}
+            ensProvider={mainnetProvider}
+            fontSize={16}
+        />
+
 
           <Address
               value={address}
@@ -184,7 +193,7 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
 
         ENS Address Example:
         <Address
-          value={"0x34aA3F359A9D614239015126635CE7732c18fDF3"} /* this will show as austingriffith.eth */
+          address={"0x34aA3F359A9D614239015126635CE7732c18fDF3"} /* this will show as austingriffith.eth */
           ensProvider={mainnetProvider}
           fontSize={16}
         />
@@ -199,7 +208,7 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
         <Balance
           address={address}
           provider={localProvider}
-          dollarMultiplier={price}
+          price={price}
         />
 
         <Divider/>
@@ -280,7 +289,7 @@ export default function ExampleUI({purpose, setPurposeEvents, address, mainnetPr
             return (
               <List.Item key={item.blockNumber+"_"+item.sender+"_"+item.purpose}>
                 <Address
-                    value={item[0]}
+                    address={item[0]}
                     ensProvider={mainnetProvider}
                     fontSize={16}
                   /> =>
